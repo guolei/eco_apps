@@ -1,0 +1,184 @@
+= eco_apps 
+
+eco_apps is a 'client' gem for rails applications to interact with each other in a rails application ecosystem. This is based on how we construct the Idapted platform and was first publicly presented at RailsConf (view ppt here: http://www.slideshare.net/jpalley/railsconf-2010-from-1-to-30-how-to-refactor-one-monolithic-application-into-an-application-ecosystem)
+
+This gem will post an app's configuration to the 'master' app (which is powered by the eco_apps_master gem) and provide functionality to power the 'ecosystem' (like web services, read only database connections and url helper method).
+
+http://www.eqenglish.com/file/f/0020/9478/structure.png
+
+= Key URLs:
+  Git/Issues: http://github.com/idapted/eco_apps
+  Mailing List: http://groups.google.com/group/eco_apps
+  Blog: http://developer.idapted.com
+
+== Install
+
+  gem install eco_apps
+  gem install eco_apps_master
+
+== The Idea Behind the Application Ecosystem
+
+As your business grows bigger, you just can’t stop adding new models/controllers to your original rails application – resulting in a messy, unmaintainable and difficult to deploy monolithic application. By splitting a single rails “application-system” into many independently maintainable yet interconnected applications, we've found a number of advantages: lower development time, greater stability and scalability and much higher developer happiness.
+
+In this rails application ecosystem, there's one application playing the master role. It manages the configuration info for all the applications. The 'node' application keeps its configuration in one file and post this to the master app when the server starts. The node app will ask the master app for another node's info when they interact with each other. All these process are packaged in gems eco_apps_master and eco_apps.
+
+eco_apps_master is used by master application. Any application using this gem will become the master app. eco-apps is used by all of the node applications. When an app uses this gem, it will be in the ecosystem. 
+
+== Getting Started
+
+=== Business logic
+Suppose we are going to build an online petstore. We'll split the features into two groups or user stories. One group is for pet info management (adding pets from an admin view and browsing/commenting/sharing/etc. from an end-user view) and the second story is ordering (monitoring orders from an admin view and actually placing the order with necessary info from an end user view). We are going to use two rails application to accomplish this: 'pet' and 'order'
+
+=== Create rails project
+Create the two rails application and add the necessary models/controllers. For example:
+
+pet:
+  rails pet
+  cd pet
+  ruby script/generate model dog
+  ruby script/generate controller dogs
+
+order:
+  rails order
+  cd order
+  ruby script/generate model order
+  ruby script/generate controller orders
+
+It's easy and normal to add functions for pet application - it doesn't need to know anything about the order application. However, we run into a problem when creating order: an order needs to know the information about the dog model (in this case) that is being ordered.
+
+=== Read Only database connection
+Suppose the default page of the order application lists all of the dogs available for  a user to select. In this case, the order application needs the data stored in the dog table of the pet application. Thus, we use a "read only database connection", so that the dogs info can be read from (but not write to) the dog table.  It is important to understand, the one application never writes to multiple databases.
+
+To set up this read-only db connection, the order app needs to know the db config of the pet app. This is where the 'master' app comes in.  It knows the configuration info for all of the applications and the node applications can get this information from the 'master' app.
+
+So, let's make the pet app as our master application:
+  # pet/config/environment.rb
+  Rails::Initializer.run do |config|
+    config.gem 'eco_apps_master'
+  end
+
+When you restart server, you can see that it will create a table called "apps" which stores all of the apps' info.
+And as 'eco_apps_master' is built on 'eco_apps', pet will also be one node of ecosystem.
+
+Start pet at port 3000 and you will find that it will raise an exception saying "please set app's name in APP_ROOT/config/app_config.yml" and also create a yml file 'app_config.yml' under config.
+This file is to keep app's configuration, including name, url, api, etc.
+Set the name and url of pet app.
+  # pet/config/app_config.yml
+  name: pet
+  url: http://localhost:3000
+  master_app_url: http://localhost:3000
+
+Now we'd like to add order apps into this ecosystem as a node.
+  # order/config/environment.rb
+  Rails::Initializer.run do |config|
+    config.gem 'eco_apps'
+  end
+
+Start order at port 3001, doing the same thing as with pet.
+  # order/config/app_config.yml
+  name: order
+  url: http://localhost:3001
+  master_app_url: http://localhost:3000
+
+Start pet first, and then order, you can see that order is posting its info to master(pet here) app.
+
+Now we can make use of the gem's magic to make it very easy to setup a readonly db connection.
+
+  # order/app/models/dog.rb
+  class Dog < ActiveRecord::Base
+    acts_as_readonly :pet
+  end
+
+  class Order < ActiveRecord::Base
+    belongs_to :dog
+  end
+
+That's it.  Now you can use the dog model just as normal active_record object - the only difference being that it reads the data from the pet's database and it can not modify records.
+Note that acts_as_readonly relies on ActiveRecord::Base.connection.current_database, so the databases like sqlite3 not implementing this method are not supported.
+
+=== Navigation Between Apps
+It's common that users will need to jump from one application or user story to another. In our petstore example, consider a functionality that links an order page to a detailed info page on that dog being ordered.
+
+It's easy to hard code the page url in order app, like
+  <%= link_to "view detail", "http://localhost:3001/dogs/#{dog.id}" %>
+
+However, this will cause tight coupling between apps and become painful if URL's change.
+
+To solve this problem, applications can publicly expose URLs to other apps.  Consider this configuration in the pet app: 
+  # pet/config/app_config.yml
+  api:
+    url:
+      dog_detail: dogs/:id
+
+And this url_of code in the orders app:
+  # order/orders/index.html.erb
+  <%= link_to "view detail", url_of(:pet, :dog_detail, :id => dog.id) %>
+
+=== Web Services
+Sometimes you cannot avoid one app needed to update the information in another application's database.  This usually goes along with some business logic. We use active resource to achieve this and again, the configuration is automatic:
+
+  # order/models/dog_service.rb
+  class DogService < ActiveRecourse::Base
+    self.site = :pet
+  end
+
+  # pet/controllers/dog_services_controller.rb
+  class DogServicesController < ActionController::Base
+    ip_limited_access # optional, only can be accessed by intranet ip (defined in GEM_DIR/eco_apps/lib/platform_config.yml)
+  end
+
+== Q&A
+
+=== How to test readonly models?
+Readonly models are not readonly in test mode.  However, to use this successfully, you need to require the columns of the readonly model in app_config.yml
+
+  # order/config/app_config.yml
+  name: order
+  # other configuration
+  
+  readonly_for_test:
+    dogs:
+      string: breed, name
+
+In this way, the readonly models can be tested the same way as normal models.
+
+=== How to set master_app_url?
+There's two ways to set master_app_url. One is to set it in each app like this:
+  # config/app_config.yml
+  master_app_url: http://internal_path_to_master.lan
+
+As the master_app_url for all your apps in the same ecosystem (and usually server) is the same, it is often easier to set this configuration on the gem level:
+  # GEM_DIR/eco_apps/lib/platform_config.yml
+  master_app_url: http://internal_path_to_master.lan
+
+=== How to keep different config for different rails modes?
+It is necessary to keep different url configuration for production and development mode, you can do this as following:
+  # APP_ROOT/config/app_config.yml
+  name: app_name
+  url:
+    development: http://example.dev
+    production: http://example.production
+  
+  # GEM_DIR/eco_apps/lib/platform_config.yml
+  master_app_url:
+    development: http://example.dev
+    production: http://example.production
+
+=== How to make app using another's configuration that is different from what stored in the master app? 
+Sometimes it's necessary for one application to use another's configuration that is different from what stored in the master app. This may be because you need to use a different configuration on your own machine rather than on the test server, or even because the app doesn't exist yet.
+
+You can mock another's configuration in development mode in this way:
+  # APP_ROOT/config/app_config.yml
+  name: app_name
+  # other configuration
+
+  development:
+    order: # This is another app's name
+      url: # set url
+      api: # The same rule with config in app_config.yml
+
+=== How do you setup your team to develop in this way?
+We have a staging server and staging "master" app.  This staging server holds a stable version of each app with real data. When we are working on an application on your local system, the ecosystem it connects to is this "stable staging" environment.  
+
+=== What about security? 
+In the platform_config.yml file of the eco_apps gem you will find an intranet_ip setting.  You can use this setting to define which intranet addresses are allowed to access the eco_app_master services. Set your firewall accordingly!
