@@ -1,27 +1,28 @@
 # Configuration of app
-name: # set app's name here
-# url: url of app
+init_without_reset_config: true
+url: http://www.example.com/test_app
+master_url: http://www.example.com/master
 
-# Specify api url
-# api:
-  # url:
-    # dog_info: dogs/:id
-
-# mock settings for other app (basically used in development environment)
-# development:
-#   pet:  #other app's name
-#     url: http://localhost:3001
-#     database:
-#       adapter: mysql
-#       encoding: utf8
-#       database: pet_development
-#       host: localhost
-#       user: root
-#       password: 
-#     other app's settings
+test:
+  article:
+    url: http://www.example.com/article
+    api:
+      url:
+        comment_list: comments/recent
+development:
+  article:
+    url: http://www.example.com/article
+    api:
+      url:
+        comments: articles/:article_id/comments
+    database:
+      adapter: mysql
+      database: article_development
+      username: root
+      password: root
+      host: localhost
 
 # columns needed for readonly models in test
-# readonly_for_test:
-#   orders:
-#     integer: dog_id, user_id
-#     string: description
+readonly_for_test:
+  comments:
+    string: title

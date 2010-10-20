@@ -19,6 +19,7 @@ describe "acts_as_readonly" do
 
   describe "test mode" do
     it "should generate table for comments" do
+      Rails.env = "test"
       Comment.table_name.should == "comments"
       Comment.column_names.should include("title")
     end

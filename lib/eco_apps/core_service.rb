@@ -1,6 +1,4 @@
 class CoreService < ActiveResource::Base
-  self.site = EcoApps.master_url
-
   class << self
     def reset_config
       app = EcoApps::App
@@ -10,7 +8,7 @@ class CoreService < ActiveResource::Base
         :api => app.api,
         :database => YAML.load_file(Rails.root.join("config/database.yml"))}
 
-      if EcoApps.in_master_app?
+      if EcoApps.in_master_app
         app = App.find_or_create_by_name(options[:name])
         app.update_attributes(options)
       else
@@ -26,7 +24,7 @@ class CoreService < ActiveResource::Base
 
     def app(app_name)
       app_name = app_name.to_s
-      if EcoApps.in_master_app?
+      if EcoApps.in_master_app
         obj = App.find_by_name(app_name)
       else
         unless Rails.env == "production" or (config = EcoApps::App.configuration[Rails.env]).blank? or
@@ -36,8 +34,7 @@ class CoreService < ActiveResource::Base
         end
         obj = CoreService.find(app_name)
       end
-      
-      return obj if (!obj.blank? and obj.attributes["error"].blank?)
+      return obj if (obj.present? and obj.attributes["error"].blank?)
       raise("#{app_name} doesn't exist") 
     end
   end

@@ -26,7 +26,7 @@ module EcoApps
       end
 
       def authenticate_ip_address
-        INTRANET_IP.each do |ip|
+        EcoApps.legal_ip.each do |ip|
           return if ip.contains?(request.remote_ip)
         end
         respond_to do |format|

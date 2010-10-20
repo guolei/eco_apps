@@ -1,6 +1,7 @@
 require 'rails'
 
 module EcoApps
+  mattr_accessor :in_master_app, :init_without_reset_config
   class << self
     def master_url
       @@master_url ||= ""
@@ -26,14 +27,6 @@ module EcoApps
       require 'netaddr'
       @@legal_ip = [legal_ip].flatten.map{|ip|NetAddr::CIDR.create(ip)}
     end
-
-    def in_master_app?
-      @@in_master_app ||= false
-    end
-
-    def in_master_app=(in_or_not)
-      @@in_master_app = in_or_not
-    end
   end
 
   module App
@@ -51,7 +44,7 @@ module EcoApps
       end
 
       def method_missing(method_name, *args)
-        configuration[method_name] || super
+        configuration[method_name] 
       end
     end
   end
@@ -67,11 +60,14 @@ module EcoApps
 
       EcoApps.master_url = configration["master_url"]
       EcoApps.legal_ip = configration["legal_ip"]
+      EcoApps.init_without_reset_config = configration["init_without_reset_config"]
+      
       EcoApps::App.configuration = configration.with_indifferent_access
     end
 
     initializer "reset_config", :after => "set_configuration" do
-      CoreService.reset_config unless Rails.env == "test"
+      CoreService.site = EcoApps.master_url
+      CoreService.reset_config unless Rails.env == "test" or EcoApps.init_without_reset_config
     end
   end
 end

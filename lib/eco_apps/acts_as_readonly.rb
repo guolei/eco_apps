@@ -36,7 +36,7 @@ module EcoApps
         begin
           self.connection.drop_table(self.table_name) if self.connection.table_exists?(self.table_name)
           self.connection.create_table(self.table_name, :force => true){|f|
-            if (config = APP_CONFIG["readonly_for_test"].try("[]", table_name)).present?
+            if (config = EcoApps::App.readonly_for_test.try("[]", table_name)).present?
               config.each{|key, value|
                 f.send(key, *(value.is_a?(Array) ? value.join(",") : value.gsub(" ","").split(",")))
               }

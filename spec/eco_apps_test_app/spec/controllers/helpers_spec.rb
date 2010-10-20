@@ -1,6 +1,6 @@
 require File.join(File.dirname(__FILE__), '../spec_helper')
 
-describe ApplicationController do
+describe ArticlesController do
 
   describe "url_of" do
     before do
@@ -15,20 +15,19 @@ describe ApplicationController do
 
   describe "ip_limited_access" do
     before do
-      require 'netaddr'
       Rails.stub!(:env).and_return("production")
-      INTRANET_IP = [NetAddr::CIDR.create("192.168.1.1/24")]
+      EcoApps.legal_ip = "192.168.1.1/24"
       ApplicationController.ip_limited_access
     end
 
     it "should display access denied for illegal access" do
-      get :test
+      get :index
       response.body.should == "Access Denied!"
     end
 
     it "should response successfully for legal access" do
       request.stub!(:remote_ip).and_return("192.168.1.12")
-      get :test
+      get :index
       response.body.should == "test"
     end
   end
