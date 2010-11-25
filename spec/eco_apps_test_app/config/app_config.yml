@@ -1,28 +1,28 @@
-# Configuration of app
-init_without_reset_config: true
+--- 
+api: 
+  url: 
+    list: /posts
 url: http://www.example.com/test_app
-master_url: http://www.example.com/master
-
-test:
-  article:
-    url: http://www.example.com/article
-    api:
-      url:
-        comment_list: comments/recent
-development:
-  article:
-    url: http://www.example.com/article
-    api:
-      url:
+readonly_for_test: 
+  comments: 
+    string: title
+development: 
+  article: 
+    api: 
+      url: 
         comments: articles/:article_id/comments
-    database:
+    url: http://www.example.com/article
+    database: 
+      username: root
       adapter: mysql
       database: article_development
-      username: root
-      password: root
       host: localhost
-
-# columns needed for readonly models in test
-readonly_for_test:
-  comments:
-    string: title
+      password: root
+  :test_app: 
+    :url: http://test.com
+test: 
+  article: 
+    api: 
+      url: 
+        comment_list: comments/recent
+    url: http://www.example.com/article

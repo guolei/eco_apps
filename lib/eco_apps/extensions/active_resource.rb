@@ -4,7 +4,7 @@ module ActiveResource
       alias_method :set_site, :site=
 
       def site=(site)
-        site = CoreService.app(site.to_s).url if site.is_a?(Symbol)
+        site = MasterService.app(site.to_s).url if site.is_a?(Symbol)
         set_site(site)
       end
     end

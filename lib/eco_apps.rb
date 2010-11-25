@@ -1,7 +1,7 @@
 require 'eco_apps/utils/common'
-require 'eco_apps/core_service'
+require 'eco_apps/master_service'
 
-require 'eco_apps/init'
+require 'eco_apps/initializer'
 
 require 'eco_apps/utils/helpers'
 require 'eco_apps/acts_as_readonly'
