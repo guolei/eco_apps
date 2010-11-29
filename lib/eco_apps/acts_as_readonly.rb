@@ -6,41 +6,42 @@ module EcoApps
  
     module ClassMethods
       def acts_as_readonly(name, options = {})
-        cattr_accessor :app_name, :rails_origin_table_name
+        cattr_accessor :app_name
         self.app_name = name
 
-        unless Rails.env == "test"
-          config = YAML.load(options[:database]||CoreService.app(name).database)
-          connection = (config[Rails.env] || config["production"] || config)
-          establish_connection connection  #activate readonly connection
-            
-          db_name = self.connection.current_database
-          prefix = table_name.include?(db_name) ? "" : db_name + "."
-          tbl = (options[:table_name]||table_name).to_s
+        tbn = options[:table_name] || self.table_name
 
-          self.rails_origin_table_name = tbl
-          set_table_name(prefix + tbl)
+        if Rails.env == "test" and use_cache_table?(tbn)
+          generate_table_for_test(tbn)
         else
-          generate_table(self.table_name)
-        end
+          config = options[:database] || MasterService.app(name).database
+          config = YAML.load(config) if config.is_a?(String)
+          self.establish_connection(config[Rails.env] || config)  #activate readonly connection
 
-        unless options[:readonly] == false or Rails.env == "test"
-          include EcoApps::ActsAsReadonly::InstanceMethods
-          extend EcoApps::ActsAsReadonly::SingletonMethods
+          self.set_table_name tbn
+          self.table_name_prefix = self.connection.current_database + "."
+
+          unless options[:readonly]==false or Rails.env == "test"
+            include EcoApps::ActsAsReadonly::InstanceMethods
+            extend EcoApps::ActsAsReadonly::SingletonMethods
+          end
         end
+        
       end
       alias_method :acts_as_remote, :acts_as_readonly
 
       private
-      def generate_table(table_name)
+      def use_cache_table?(table_name)
+        EcoApps.current.readonly_for_test.try("[]", table_name).present?
+      end
+
+      def generate_table_for_test(table_name)
         begin
-          self.connection.drop_table(self.table_name) if self.connection.table_exists?(self.table_name)
           self.connection.create_table(self.table_name, :force => true){|f|
-            if (config = EcoApps::App.readonly_for_test.try("[]", table_name)).present?
-              config.each{|key, value|
-                f.send(key, *(value.is_a?(Array) ? value.join(",") : value.gsub(" ","").split(",")))
-              }
-            end
+            config = EcoApps.current.readonly_for_test[table_name]
+            config.each{|key, value|
+              f.send(key, *(value.is_a?(Array) ? value.join(",") : value.gsub(" ","").split(",")))
+            }
             f.timestamps
           }
         rescue Exception => e
@@ -48,26 +49,23 @@ module EcoApps
         end
       end
     end
- 
+
     module SingletonMethods
       def delete_all(conditions = nil)
         raise ActiveRecord::ReadOnlyRecord
       end
-
-      def table_exists?
-        connection.table_exists?(self.rails_origin_table_name)
-      end
     end
- 
+
     module InstanceMethods
       def readonly?
         true
       end
- 
+
       def destroy
         raise ActiveRecord::ReadOnlyRecord
       end
     end
+  
   end
 end
  

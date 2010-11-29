@@ -1,28 +1,22 @@
 --- 
-api: 
-  url: 
-    list: /posts
-url: http://www.example.com/test_app
-readonly_for_test: 
-  comments: 
-    string: title
-development: 
+cached_config: 
   article: 
+    url: http://www.example.com/article
     api: 
       url: 
         comments: articles/:article_id/comments
-    url: http://www.example.com/article
     database: 
-      username: root
       adapter: mysql
+      username: root
       database: article_development
       host: localhost
       password: root
-  :test_app: 
-    :url: http://test.com
-test: 
-  article: 
-    api: 
-      url: 
-        comment_list: comments/recent
-    url: http://www.example.com/article
+  cache_test: 
+    url: http://test.com
+url: http://www.example.com/test_app
+api: 
+  url: 
+    list: /posts
+readonly_for_test: 
+  comments: 
+    string: title

@@ -11,6 +11,10 @@ module EcoApps
           return true
         end
       end
+
+      def convert_ip(ip_address)
+        [ip_address].flatten.map{|ip|NetAddr::CIDR.create(ip)}
+      end
     end
   end
 end

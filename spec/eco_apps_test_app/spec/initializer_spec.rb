@@ -32,21 +32,18 @@ describe "initializer" do
     describe "in_master_app" do
       it "should be true if EcoAppsStore defined" do
         EcoApps.in_master_app?.should be_false
-        class EcoAppsStore
-        end
-        EcoApps.in_master_app?.should be_true
       end
     end
   end
 
   describe "EcoApps::App" do
     before do
-      @attrs = {:name => "test_app", :url => "http://lan.com", :api => {:url => {:list => "posts"}, :host => "2000"}, :database => {:production => {}}, :else => {}}
+      @attrs = {"name"=> "test_app", "url" => "http://lan.com", "api" => {"url" => {"list" => "posts"}, "host" => "2000"}, "database" => {"production" => {}}, "else" => {}}
       @app = EcoApps::App.new(@attrs)
     end
 
     it "should have attributes" do
-      @app.eco_apps_config.should == {:url=>"http://lan.com", :api=>{"url"=>{"list"=>"posts"}, "host"=>"2000"}, :name=>"test_app", :database=>{"production"=>{}}}
+      @app.eco_apps_config.should == {"url"=>"http://lan.com", "api"=>{"url"=>{"list"=>"posts"}, "host"=>"2000"}, "name"=>"test_app", "database"=>{"production"=>{}}}
     end
 
     it "should have methods for name, url, api, and database" do
@@ -58,9 +55,11 @@ describe "initializer" do
       @app.host.should == "2000"
     end
 
-    it "should read and write cache from config file" do
-      EcoApps::App.write_cache(:test_app, {:url => "http://test.com"})
-      EcoApps::App.read_cache(:test_app)[:url].should == "http://test.com"
+    it "should read, write and delete cache from config file" do
+      EcoApps::App.write_cache("test_app", {"url" => "http://test.com"})
+      EcoApps::App.read_cache("test_app")["url"].should == "http://test.com"
+      EcoApps::App.delete_cache("test_app")
+      EcoApps::App.read_cache("test_app").should be_nil
     end
   end
 

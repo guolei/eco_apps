@@ -9,24 +9,32 @@ module EcoApps
     module InstanceMethods
 
       def url_of(app_name, url_key, options={})
-        app = CoreService.app(app_name.to_s)
-        app_url = YAML.load(app.url)
-        app_url = app_url[Rails.env] if app_url.is_a?(Hash)
+        app = MasterService.app(app_name)
+
+        root = app.url
+        root = YAML.load(root) if root.is_a?(String)
+        root = root[Rails.env] if root.is_a?(Hash)
         
-        api = YAML.load(app.api)
+        api = app.api
+        api = YAML.load(api) if api.is_a?(String)
         begin
-          url = api["url"][url_key.to_s] || ""
-          options.each{|k,v| url = url.gsub(":#{k}", v.to_s)}
-          params = options[:params]
-          params = params.map{|t| "#{t.first}=#{t.last}"}.join("&") if params.instance_of?(Hash)
-          [app_url.gsub(/\/$/,""), url.gsub(/^\//,"")].join("/") + (params.blank? ? "" : "?#{params}")
+          path = api["url"][url_key.to_s] || ""
+          options.each{|k,v| path.gsub!(":#{k}", v.to_s)}
+
+          url = URI.parse(root)
+          url.path +=  "/#{path}".gsub("//","/")
+          query = ([url.query, (options[:params]||{}).to_query] - [nil, ""]).join("&")
+          url.query = query unless query.blank?
+          url.to_s
         rescue Exception => e
-          raise "#{url_key} of #{app_name} seems not configured correctly in #{app_name}'s site_config.yml"
+          raise "#{url_key} of #{app_name} seems not configured correctly in #{app_name}'s config/app_config.yml"
         end
       end
 
-      def authenticate_ip_address
-        EcoApps.legal_ip.each do |ip|
+      def authenticate_ip_address(extra = nil)
+        legal_ip = EcoApps.legal_ip
+        legal_ip += EcoApps::Util.convert_ip(extra) unless extra.blank?
+        legal_ip.each do |ip|
           return if ip.contains?(request.remote_ip)
         end
         respond_to do |format|
@@ -38,7 +46,8 @@ module EcoApps
 
     module SingletonMethods
       def ip_limited_access(options = {})
-        before_filter(:authenticate_ip_address, options) if Rails.env == "production"
+        extra = options.delete(:extra)
+        before_filter(options){|c| c.authenticate_ip_address(extra)} if Rails.env == "production"
       end
     end
   end
