@@ -35,7 +35,7 @@ module EcoApps
         legal_ip = EcoApps.legal_ip
         legal_ip += EcoApps::Util.convert_ip(extra) unless extra.blank?
         legal_ip.each do |ip|
-          return if ip.contains?(request.remote_ip)
+          return if ip.matches?(request.remote_ip)
         end
         respond_to do |format|
           format.html{ render :text => "Access Denied!" }

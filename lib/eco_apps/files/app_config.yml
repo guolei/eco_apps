@@ -5,9 +5,10 @@
 # api:
   # url:
     # dog_info: dogs/:id
+  # other_api:
 
-# mock settings for other app (basically used in development environment)
-# development:
+# mock and cached settings for other app (basically used in development environment)
+# cached_config:
 #   pet:  #other app's name
 #     url: http://localhost:3001
 #     database:

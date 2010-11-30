@@ -7,7 +7,7 @@ This gem will post an app's configuration to the 'master' app (which is powered 
 http://www.eqenglish.com/file/f/0020/9478/structure.png
 
 = Key URLs:
-  Git/Issues: http://github.com/idapted/eco_apps
+  Git/Issues: http://github.com/eleutian/eco_apps
   Mailing List: http://groups.google.com/group/eco_apps
   Blog: http://developer.idapted.com
 
@@ -33,16 +33,16 @@ Suppose we are going to build an online petstore. We'll split the features into 
 Create the two rails application and add the necessary models/controllers. For example:
 
 pet:
-  rails pet
-  cd pet
-  ruby script/generate model dog
-  ruby script/generate controller dogs
+  rails new pet_app
+  cd pet_app
+  rails g model dog
+  rails g controller dogs
 
 order:
-  rails order
-  cd order
-  ruby script/generate model order
-  ruby script/generate controller orders
+  rails new order_app
+  cd order_app
+  rails g model order
+  rails g controller orders
 
 It's easy and normal to add functions for pet application - it doesn't need to know anything about the order application. However, we run into a problem when creating order: an order needs to know the information about the dog model (in this case) that is being ordered.
 
@@ -52,37 +52,37 @@ Suppose the default page of the order application lists all of the dogs availabl
 To set up this read-only db connection, the order app needs to know the db config of the pet app. This is where the 'master' app comes in.  It knows the configuration info for all of the applications and the node applications can get this information from the 'master' app.
 
 So, let's make the pet app as our master application:
-  # pet/config/environment.rb
-  Rails::Initializer.run do |config|
-    config.gem 'eco_apps_master'
-  end
+  # pet/Gemfile
+  config.gem 'eco_apps_master', '>= 0.2.0'
 
-When you restart server, you can see that it will create a table called "apps" which stores all of the apps' info.
+When you restart server, you can see that it will create a table called "eco_apps_stores" which will store all of the apps' info and a file "config/app_config.yml" which will store configuration of pet.
 And as 'eco_apps_master' is built on 'eco_apps', pet will also be one node of ecosystem.
 
-Start pet at port 3000 and you will find that it will raise an exception saying "please set app's name in APP_ROOT/config/app_config.yml" and also create a yml file 'app_config.yml' under config.
-This file is to keep app's configuration, including name, url, api, etc.
-Set the name and url of pet app.
+Start pet at port 3000 in production mode and an exception will be raised, saying "master_url 'http://production.lan' is unreachable! Please change it in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml and make sure the master app starts at this address. If you are in master app, please add 'in_master_app: true' in config/app_config.yml.".
+'http://production.lan' is the default value of master_url in 'GEM_DIR/eco_apps/lib/platform_config.yml'. In this example, we should change it to "http://localhost:3000".
+
+And as pet acts as master app here, we need to add 'in_master_app: true'.
   # pet/config/app_config.yml
-  name: pet
+  in_master_app: true
   url: http://localhost:3000
-  master_app_url: http://localhost:3000
+  master_url: http://localhost:3000
 
-Now we'd like to add order apps into this ecosystem as a node.
-  # order/config/environment.rb
-  Rails::Initializer.run do |config|
-    config.gem 'eco_apps'
-  end
+Now we can add order app into this ecosystem as a node.
+  # order/Gemfile
+  gem 'eco_apps', '>= 0.2.0'
 
-Start order at port 3001, doing the same thing as with pet.
+Start order at port 3001, and edit config file.
   # order/config/app_config.yml
-  name: order
   url: http://localhost:3001
-  master_app_url: http://localhost:3000
+  master_url: http://localhost:3000
+
+NOTE: If master_url is set in 'GEM_DIR/eco_apps/lib/platform_config.yml', it will works for all node apps.
 
 Start pet first, and then order, you can see that order is posting its info to master(pet here) app.
 
-Now we can make use of the gem's magic to make it very easy to setup a readonly db connection.
+NOTE: To make the requests respond faster in development mode, the app's config info will be posted to master app only in production mode. As a result, you need to start one app in production mode at least 1 time to make it available to others.
+
+Now we can make use of the gem's magic to make it easy to setup a readonly db connection.
 
   # order/app/models/dog.rb
   class Dog < ActiveRecord::Base
@@ -130,37 +130,34 @@ Sometimes you cannot avoid one app needed to update the information in another a
 == Q&A
 
 === How to test readonly models?
-Readonly models are not readonly in test mode.  However, to use this successfully, you need to require the columns of the readonly model in app_config.yml
+Readonly models are not readonly in test mode. You can test them just as normal models. The difference is that they are in other databases.
+
+If you would like to keep all the tests in the same database, you can define the columns of the readonly model in app_config.yml, then the tables will be created accordingly.
 
   # order/config/app_config.yml
-  name: order
-  # other configuration
   
   readonly_for_test:
     dogs:
       string: breed, name
 
-In this way, the readonly models can be tested the same way as normal models.
-
-=== How to set master_app_url?
-There's two ways to set master_app_url. One is to set it in each app like this:
+=== How to set master_url?
+There's two ways to set master_url. One is to set it in each app like this:
   # config/app_config.yml
-  master_app_url: http://internal_path_to_master.lan
+  master_url: http://internal_path_to_master.lan
 
-As the master_app_url for all your apps in the same ecosystem (and usually server) is the same, it is often easier to set this configuration on the gem level:
+As the master_url for all your apps in the same ecosystem (and usually server) is the same, it is often easier to set this configuration on the gem level:
   # GEM_DIR/eco_apps/lib/platform_config.yml
-  master_app_url: http://internal_path_to_master.lan
+  master_url: http://internal_path_to_master.lan
 
 === How to keep different config for different rails modes?
 It is necessary to keep different url configuration for production and development mode, you can do this as following:
   # APP_ROOT/config/app_config.yml
-  name: app_name
   url:
     development: http://example.dev
     production: http://example.production
   
   # GEM_DIR/eco_apps/lib/platform_config.yml
-  master_app_url:
+  master_url:
     development: http://example.dev
     production: http://example.production
 
@@ -169,13 +166,14 @@ Sometimes it's necessary for one application to use another's configuration that
 
 You can mock another's configuration in development mode in this way:
   # APP_ROOT/config/app_config.yml
-  name: app_name
   # other configuration
 
-  development:
+  cached_config:
     order: # This is another app's name
       url: # set url
       api: # The same rule with config in app_config.yml
+
+In addition to this, the config of other apps will be cached in this way. If config of one app is changed, you need to delete it from 'app_config.yml' manually to keep it up-to-date.
 
 === How do you setup your team to develop in this way?
 We have a staging server and staging "master" app.  This staging server holds a stable version of each app with real data. When we are working on an application on your local system, the ecosystem it connects to is this "stable staging" environment.  

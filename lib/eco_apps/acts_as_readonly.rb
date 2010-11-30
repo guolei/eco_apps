@@ -25,6 +25,8 @@ module EcoApps
             include EcoApps::ActsAsReadonly::InstanceMethods
             extend EcoApps::ActsAsReadonly::SingletonMethods
           end
+
+          self.delete_all if Rails.env == "test"
         end
         
       end
