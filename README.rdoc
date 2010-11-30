@@ -59,7 +59,8 @@ When you restart server, you can see that it will create a table called "eco_app
 And as 'eco_apps_master' is built on 'eco_apps', pet will also be one node of ecosystem.
 
 Start pet at port 3000 in production mode and an exception will be raised, saying "master_url 'http://production.lan' is unreachable! Please change it in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml and make sure the master app starts at this address. If you are in master app, please add 'in_master_app: true' in config/app_config.yml.".
-'http://production.lan' is the default value of master_url in 'GEM_DIR/eco_apps/lib/platform_config.yml'. In this example, we should change it to "http://localhost:3000".
+
+"http://production.lan" is the default value of master_url in 'GEM_DIR/eco_apps/lib/platform_config.yml'. In this example, we should change it to "http://localhost:3000".
 
 And as pet acts as master app here, we need to add 'in_master_app: true'.
   # pet/config/app_config.yml
