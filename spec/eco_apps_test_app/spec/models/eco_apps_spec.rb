@@ -1,31 +1,29 @@
-require File.join(File.dirname(__FILE__), 'spec_helper')
+require 'spec_helper'
 
-describe "initializer" do
-
-  before do
-    MasterService.stub!(:reset_config).and_return(true)
-  end
+describe "eco_apps" do
 
   describe "EcoApps module" do
 
     describe "master_url validation" do
       it "should not be blank" do
-        lambda{EcoApps.master_url=nil}.should raise_error("Please set master_url in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml!")
+        EcoApps.stub!(:load_from_conf).and_return(nil)
+        lambda{EcoApps.validate_master_url!}.should raise_error("Please set master_url in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml!")
       end
 
       it "should begin with http or https" do
-        lambda{EcoApps.master_url="/relative"}.should raise_error("master_url must begin with http:// or https://")
+        EcoApps.stub!(:load_from_conf).and_return("/relative")
+        lambda{EcoApps.validate_master_url!}.should raise_error("master_url must begin with http:// or https://")
       end
       
       it "should select mode" do
-        EcoApps.master_url = {"development" => "http://dev.lan", "test" => "http://test.lan"}
         EcoApps.master_url.should == "http://test.lan"
       end
     end
 
     describe "legal_ip validation" do
       it "should not be blank" do
-        lambda{EcoApps.legal_ip=nil}.should raise_error("legal_ip is not identified!")
+        EcoApps.stub!(:load_from_conf).and_return(nil)
+        lambda{EcoApps.validate_legal_ip!}.should raise_error("legal_ip is not identified!")
       end
     end
 
@@ -33,6 +31,13 @@ describe "initializer" do
       it "should be true if EcoAppsStore defined" do
         EcoApps.in_master_app?.should be_false
       end
+    end
+
+    it "should get attr defined in config file" do
+      EcoApps.secret_key.should == "38dd2f347b2db4d48"
+      EcoApps.not_exist.should be_nil
+      EcoApps.other.should == "some other"
+      lambda{EcoApps.master=nil}.should raise_error("undefined method `master=' for EcoApps:Module")
     end
   end
 
@@ -63,18 +68,5 @@ describe "initializer" do
     end
   end
 
-  describe "initializer" do
-    it "should copy config file unless it exists" do
-      File.exists?(Rails.root.join("config/app_config.yml")).should be_true
-    end
-
-    it "should set configuration" do
-      EcoApps.master_url.should == "http://test.lan"
-      EcoApps.legal_ip.should == [NetAddr::CIDR.create("192.168.0.1/24"), NetAddr::CIDR.create("192.168.1.1/24")]
-      EcoApps.current.name.should == "eco_apps_test_app"
-      EcoApps.current.url.should == "http://www.example.com/test_app"
-      EcoApps.current.api.should == {"url" => {"list" => "/posts"}}
-    end
-  end
 end 
 

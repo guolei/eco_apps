@@ -17,6 +17,7 @@ url: http://www.example.com/test_app
 api: 
   url: 
     list: /posts
+other: some other
 readonly_for_test: 
   comments: 
     string: title

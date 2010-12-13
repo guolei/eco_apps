@@ -1,3 +1,5 @@
+require 'eco_apps/eco_apps'
+
 require 'eco_apps/utils/common'
 require 'eco_apps/master_service'
 

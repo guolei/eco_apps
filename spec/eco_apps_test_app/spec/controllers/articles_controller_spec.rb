@@ -16,7 +16,7 @@ describe ArticlesController do
   describe "ip_limited_access" do
     before do
       Rails.stub!(:env).and_return("production")
-      EcoApps.legal_ip = "192.168.1.1/24"
+      EcoApps.stub!(:legal_ip).and_return EcoApps::Util.convert_ip("192.168.1.1/24")
       ApplicationController.ip_limited_access :extra => "10.1.1.1"
     end
 
