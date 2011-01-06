@@ -11,9 +11,9 @@ module EcoApps
       def url_of(app_name, url_key, options={})
         app = MasterService.app(app_name)
 
-        root = app.url
+        root = app.url.to_s
         root = YAML.load(root) if root.is_a?(String)
-        root = root[Rails.env] if root.is_a?(Hash)
+        root = EcoApps::Util.env_value(root)
         
         api = app.api
         api = YAML.load(api) if api.is_a?(String)
@@ -21,14 +21,23 @@ module EcoApps
           path = api["url"][url_key.to_s] || ""
           options.each{|k,v| path.gsub!(":#{k}", v.to_s)}
 
-          url = URI.parse(root)
-          url.path +=  "/#{path}".gsub("//","/")
-          query = ([url.query, (options[:params]||{}).to_query] - [nil, ""]).join("&")
-          url.query = query unless query.blank?
-          url.to_s
+          URI.parse(root).add_path(path).add_query(options[:params]).to_s
         rescue Exception => e
           raise "#{url_key} of #{app_name} seems not configured correctly in #{app_name}'s config/app_config.yml"
         end
+      end
+
+      def full_path_of(path, app = nil)
+        return nil if path.blank?
+        return path if path =~ /^(http|https):\/\//
+        path = "/" + (path.split("/")-[""]).join("/")
+
+        if Rails.env == "production" and request.subdomains.first =~ /^www/
+          prefix = "/#{(app||EcoApps.current.name)}"
+        else
+          prefix = (app.blank? ? "" : "#{EcoApps.base_url}/#{app}")
+        end
+        prefix + path
       end
 
       def authenticate_ip_address(extra = nil)
@@ -38,7 +47,7 @@ module EcoApps
           return if ip.matches?(request.remote_ip)
         end
         respond_to do |format|
-          format.html{ render :text => "Access Denied!" }
+          format.html{ render :text => "Access Denied!", :status => :forbidden }
           format.xml{ render :xml => {:info => "Access Denied!"}.to_xml, :status => :forbidden}
         end
       end

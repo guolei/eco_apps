@@ -28,13 +28,15 @@ describe "eco_apps" do
     end
 
     describe "in_master_app" do
-      it "should be true if EcoAppsStore defined" do
+      it "should be true if master_app equals current name" do
         EcoApps.in_master_app?.should be_false
+        EcoApps.current.stub(:name).and_return("master_app_name")
+        EcoApps.in_master_app?.should be_true
       end
     end
 
     it "should get attr defined in config file" do
-      EcoApps.secret_key.should == "38dd2f347b2db4d48"
+      EcoApps.secret_key.should == "in app"
       EcoApps.not_exist.should be_nil
       EcoApps.other.should == "some other"
       lambda{EcoApps.master=nil}.should raise_error("undefined method `master=' for EcoApps:Module")

@@ -13,4 +13,5 @@ spec = Gem::Specification.new do |s|
   s.autorequire = "eco_apps"
   s.test_files = Dir["{spec}/**/*"]
   s.add_dependency("netaddr")
+  s.add_dependency("eco_apps_util", ">= 0.2.0")
 end

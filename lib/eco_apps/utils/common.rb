@@ -14,15 +14,6 @@ module EcoApps
         require 'netaddr'
         [ip_address].flatten.map{|ip|NetAddr::CIDR.create(ip)}
       end
-
-      def encrypt(salt, raw_data)
-        require 'openssl' unless defined?(OpenSSL)
-        OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA1.new, salt, raw_data.to_s)
-      end
-
-      def random_salt
-        ActiveSupport::SecureRandom.hex(64)
-      end
     end
   end
 end

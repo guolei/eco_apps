@@ -4,7 +4,7 @@ module EcoApps
 
   class Railtie < Rails::Railtie
     initializer "copy_configuration_file" do
-      EcoApps::Util.copy(File.join(File.dirname(__FILE__),"files/app_config.yml"), EcoApps.config_file, false)
+      EcoApps::Util.copy(File.join(File.dirname(__FILE__),"files/app_config.yml"), EcoApps::App.config_file, false)
     end
 
     initializer "set_configuration", :after => "copy_configuration_file" do

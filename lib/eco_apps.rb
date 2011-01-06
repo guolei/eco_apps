@@ -1,3 +1,6 @@
+require 'rubygems'
+#require 'eco_apps_util'
+
 require 'eco_apps/eco_apps'
 
 require 'eco_apps/utils/common'

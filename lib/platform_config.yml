@@ -1,4 +1,5 @@
 # Configuration of platform
+master_app: master_app_name
 master_url:
   development: http://dev.lan
   production: http://production.lan
@@ -7,3 +8,4 @@ legal_ip:
   - 192.168.0.1/24
   - 192.168.1.1/24
 secret_key: 38dd2f347b2db4d48
+

@@ -15,8 +15,7 @@ module EcoApps
     end
 
     def master_url
-      url = load_from_conf(:master_url)
-      url.is_a?(Hash) ? url[Rails.env] : url
+      load_from_conf(:master_url)
     end
 
     def legal_ip
@@ -24,7 +23,7 @@ module EcoApps
     end
 
     def in_master_app?
-      not self.current.nil? and self.current.in_master_app == true
+      self.master_app == self.current.name
     end
 
     def config_file
@@ -38,7 +37,7 @@ module EcoApps
     private
 
     def load_from_conf(method_name)
-      YAML.load(config_file)[method_name.to_s] || current.send(method_name)
+      EcoApps::Util.env_value(current.send(method_name) || YAML.load(config_file)[method_name.to_s])
     end
 
   end
@@ -53,10 +52,11 @@ module EcoApps
     def method_missing(method_name, *args)
       m = method_name.to_s
       if m != "url" and @config["api"].present? and @config["api"].keys.include?(m)
-        @config["api"][m]
+        v = @config["api"][m]
       else
-        @config[m]
+        v = @config[m]
       end
+      EcoApps::Util.env_value v
     end
 
     def eco_apps_config
@@ -64,7 +64,6 @@ module EcoApps
     end
 
     class << self
-
       def config_file
         Rails.root.join("config/app_config.yml")
       end
