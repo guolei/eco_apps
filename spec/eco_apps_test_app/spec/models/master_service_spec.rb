@@ -15,7 +15,7 @@ describe "master_service" do
 
     it "should raise error if master app can not be reached" do
       MasterService.stub!(:create).and_raise("anything")
-      lambda{MasterService.reset_config}.should raise_error("master_url '#{EcoApps.master_url}' is unreachable! Please change it in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml and make sure the master app starts at this address. If you are in master app, please add 'in_master_app: true' in config/app_config.yml.")
+      lambda{MasterService.reset_config}.should raise_error("master_app_url '#{EcoApps.master_app_url}' is unreachable! Please change it in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml and make sure the master app starts at this address.")
     end
   end
 

@@ -10,7 +10,7 @@ class MasterService < ActiveResource::Base
         rescue ActiveResource::ForbiddenAccess
           raise 'Access denied by master app! Please make sure ip address is contained by intranet_ip which is set in GEM_DIR/eco_apps/lib/platform_config.yml'
         rescue Exception => e
-          raise "master_url '#{EcoApps.master_url}' is unreachable! Please change it in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml and make sure the master app starts at this address. If you are in master app, please add 'in_master_app: true' in config/app_config.yml."
+          raise "master_app_url '#{EcoApps.master_app_url}' is unreachable! Please change it in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml and make sure the master app starts at this address."
         end
       end
     end

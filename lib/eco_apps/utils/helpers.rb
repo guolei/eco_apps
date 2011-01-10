@@ -10,10 +10,7 @@ module EcoApps
 
       def url_of(app_name, url_key, options={})
         app = MasterService.app(app_name)
-
-        root = app.url.to_s
-        root = YAML.load(root) if root.is_a?(String)
-        root = EcoApps::Util.env_value(root)
+        root = EcoApps::Util.env_value(YAML.load(app.url.to_s) )
         
         api = app.api
         api = YAML.load(api) if api.is_a?(String)

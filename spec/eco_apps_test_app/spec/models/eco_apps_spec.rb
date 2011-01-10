@@ -7,16 +7,16 @@ describe "eco_apps" do
     describe "master_url validation" do
       it "should not be blank" do
         EcoApps.stub!(:load_from_conf).and_return(nil)
-        lambda{EcoApps.validate_master_url!}.should raise_error("Please set master_url in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml!")
+        lambda{EcoApps.validate_master_app_url!}.should raise_error("Please set master_app_url in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml!")
       end
 
       it "should begin with http or https" do
         EcoApps.stub!(:load_from_conf).and_return("/relative")
-        lambda{EcoApps.validate_master_url!}.should raise_error("master_url must begin with http:// or https://")
+        lambda{EcoApps.validate_master_app_url!}.should raise_error("master_app_url must begin with http:// or https://")
       end
       
       it "should select mode" do
-        EcoApps.master_url.should == "http://test.lan"
+        EcoApps.master_app_url.should == "http://test.lan"
       end
     end
 

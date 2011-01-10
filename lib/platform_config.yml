@@ -1,6 +1,6 @@
 # Configuration of platform
 master_app: master_app_name
-master_url:
+master_app_url:
   development: http://dev.lan
   production: http://production.lan
   test: http://test.lan

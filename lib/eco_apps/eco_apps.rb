@@ -4,18 +4,18 @@ module EcoApps
 
   class << self
 
-    def validate_master_url!
-      url = self.master_url
-      raise 'Please set master_url in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml!' if url.blank?
-      raise 'master_url must begin with http:// or https://' if not url =~ Regexp.new("(http|https)://")
+    def validate_master_app_url!
+      url = self.master_app_url
+      raise 'Please set master_app_url in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml!' if url.blank?
+      raise 'master_app_url must begin with http:// or https://' if not url =~ Regexp.new("(http|https)://")
     end
 
     def validate_legal_ip!
       raise "legal_ip is not identified!" if load_from_conf(:legal_ip).blank?
     end
 
-    def master_url
-      load_from_conf(:master_url)
+    def master_app_url
+      load_from_conf(:master_app_url)
     end
 
     def legal_ip

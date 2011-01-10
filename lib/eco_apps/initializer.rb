@@ -15,12 +15,12 @@ module EcoApps
           "name" => Rails.application.class.parent.to_s.tableize.singularize,
           "database" => YAML.load_file(Rails.root.join("config/database.yml"))))
 
-      EcoApps.validate_master_url! 
+      EcoApps.validate_master_app_url! 
       EcoApps.validate_legal_ip!
     end
 
     initializer "reset_config", :after => "set_configuration" do
-      MasterService.site = EcoApps.master_url
+      MasterService.site = EcoApps.master_app_url
       MasterService.reset_config if Rails.env == "production"
     end
   end

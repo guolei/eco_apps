@@ -10,7 +10,7 @@ cached_config:
       username: root
       database: article_development
       host: localhost
-      password: root
+      password: 
   cache_test: 
     url: http://test.com
 url: http://www.example.com/test_app

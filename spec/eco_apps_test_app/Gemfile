@@ -3,7 +3,7 @@ source 'http://rubygems.org'
 gem 'rails', '3.0.3'
 
 gem 'sqlite3-ruby', :require => 'sqlite3'
-
+gem 'ruby-mysql'
 gem 'eco_apps_util', '>= 0.2.0'
 gem 'eco_apps', '>= 0.2.0'
 
