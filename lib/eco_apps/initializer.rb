@@ -18,9 +18,12 @@ module EcoApps
       EcoApps.validate_master_app_url! 
       EcoApps.validate_legal_ip!
     end
-
-    initializer "reset_config", :after => "set_configuration" do
+    
+    initializer "set_master_service_url", :after => "set_configuration" do
       MasterService.site = EcoApps.master_app_url
+    end
+
+    config.after_initialize do
       MasterService.reset_config if Rails.env == "production"
     end
   end

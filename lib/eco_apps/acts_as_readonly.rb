@@ -16,7 +16,7 @@ module EcoApps
         else
           config = options[:database] || MasterService.app(name).database
           config = YAML.load(config) if config.is_a?(String)
-          self.establish_connection(config[Rails.env] || config)  #activate readonly connection
+          self.establish_connection(config[Rails.env] || config["production"] || config)  #activate readonly connection
 
           self.set_table_name tbn
           self.table_name_prefix = self.connection.current_database + "."

@@ -6,7 +6,7 @@ class MasterService < ActiveResource::Base
         EcoAppsStore.reset_config(options)
       else
         begin
-          self.create(:app => YAML.dump(options))
+          self.create(options)
         rescue ActiveResource::ForbiddenAccess
           raise 'Access denied by master app! Please make sure ip address is contained by intranet_ip which is set in GEM_DIR/eco_apps/lib/platform_config.yml'
         rescue Exception => e
