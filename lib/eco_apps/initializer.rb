@@ -12,7 +12,7 @@ module EcoApps
       configration.merge!(YAML.load_file(EcoApps::App.config_file)||{})
 
       EcoApps.current = EcoApps::App.new(configration.merge!(
-          "name" => Rails.application.class.parent.to_s.tableize.singularize,
+          "name" => Rails.application.class.parent.to_s.underscore,
           "database" => YAML.load_file(Rails.root.join("config/database.yml"))))
 
       EcoApps.validate_master_app_url! 
