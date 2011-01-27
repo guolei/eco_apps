@@ -3,7 +3,7 @@ require 'spec_helper'
 describe "acts_as_readonly" do
   describe "not test mode" do
     before do
-      Rails.stub!(:env).and_return("development")
+      Rails.env.stub!(:test?).and_return(false)
       Comment.acts_as_readonly :article
     end
 

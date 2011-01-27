@@ -6,7 +6,7 @@ describe ArticlesController do
 
     describe "url_of" do
       before do
-        Rails.stub!(:env).and_return("development")
+        Rails.env.stub!(:development?).and_return(true)
       end
 
       it "should get url from app's configration" do
@@ -23,7 +23,7 @@ describe ArticlesController do
 
       describe "development" do
         before do
-          Rails.stub!(:env).and_return("development")
+          Rails.env.stub!(:development?).and_return(true)
         end
 
         it "should not add app name in for self" do
@@ -37,7 +37,7 @@ describe ArticlesController do
 
       describe "production" do
         before do
-          Rails.stub!(:env).and_return("production")
+          Rails.env.stub!(:production?).and_return(true)
         end
 
         it "should add app name if subdomain is www" do
@@ -54,7 +54,7 @@ describe ArticlesController do
 
     describe "ip_limited_access" do
       before do
-        Rails.stub!(:env).and_return("production")
+        Rails.env.stub!(:production?).and_return(true)
         EcoApps.stub!(:legal_ip).and_return EcoApps::Util.convert_ip("192.168.1.1/24")
         ApplicationController.ip_limited_access :extra => "10.1.1.1"
       end
