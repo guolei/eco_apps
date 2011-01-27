@@ -21,7 +21,7 @@ class MasterService < ActiveResource::Base
         if EcoApps.in_master_app?
           options = EcoAppsStore.find_by_name(app_name).attributes
         else
-          if Rails.env == "production"
+          if Rails.env.production?
             options = MasterService.find(app_name).attributes
           else
             if (options = EcoApps::App.read_cache(app_name)).blank?

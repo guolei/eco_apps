@@ -24,7 +24,7 @@ module EcoApps
     end
 
     config.after_initialize do
-      MasterService.reset_config if Rails.env == "production"
+      MasterService.reset_config if Rails.env.production?
     end
   end
 end
