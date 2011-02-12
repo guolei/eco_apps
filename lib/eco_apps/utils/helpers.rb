@@ -29,7 +29,7 @@ module EcoApps
         return path if path =~ /^(http|https):\/\//
         path = "/" + (path.split("/")-[""]).join("/")
 
-        if Rails.env == "production" and request.subdomains.first =~ /^www/
+        if Rails.env.production? and request.subdomains.first =~ /^www/
           prefix = "/#{(app||EcoApps.current.name)}"
         else
           prefix = (app.blank? ? "" : "#{EcoApps.base_url}/#{app}")
@@ -53,7 +53,7 @@ module EcoApps
     module SingletonMethods
       def ip_limited_access(options = {})
         extra = options.delete(:extra)
-        before_filter(options){|c| c.authenticate_ip_address(extra)} if Rails.env == "production"
+        before_filter(options){|c| c.authenticate_ip_address(extra)} if Rails.env.production?
       end
     end
   end
