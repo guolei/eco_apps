@@ -1,3 +1,5 @@
+require 'active_resource/base'
+
 class MasterService < ActiveResource::Base
   class << self
     def reset_config
@@ -24,10 +26,7 @@ class MasterService < ActiveResource::Base
           if Rails.env == "production"
             options = MasterService.find(app_name).attributes
           else
-            if (options = EcoApps::App.read_cache(app_name)).blank?
-              options = MasterService.find(app_name).attributes
-              EcoApps::App.write_cache(app_name, options.clone.to_hash)
-            end
+            options = EcoApps::App.fetch(app_name) { MasterService.find(app_name).attributes }
           end
         end
         EcoApps::App.new(options)

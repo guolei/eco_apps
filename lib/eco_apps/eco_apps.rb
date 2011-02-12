@@ -71,6 +71,16 @@ module EcoApps
       def cache_key
         "cached_config"
       end
+      
+      def fetch(app_name)
+        if cache = EcoApps::App.read_cache(app_name)
+          cache
+        else
+          cache = yield
+          EcoApps::App.write_cache(app_name, cache.clone.to_hash)
+          cache
+        end
+      end
 
       def read_cache(app_name)
         cache = YAML.load_file(self.config_file)[cache_key].try("[]", app_name.to_s)
