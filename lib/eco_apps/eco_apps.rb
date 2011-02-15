@@ -29,7 +29,18 @@ module EcoApps
     end
 
     def master_app_url
-      load_from_conf(:master_app_url)
+      url = load_from_conf(:master_app_url)
+      if url.is_a?(Hash)
+        url[Rails.env]
+      else
+        url
+      end
+      
+      if url.blank?
+        raise "please set #{Rails.env} env master_app_url in app_config.yml"
+      else
+        return url
+      end
     end
 
     def legal_ip
