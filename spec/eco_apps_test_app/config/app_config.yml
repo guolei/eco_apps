@@ -17,7 +17,10 @@ url: http://www.example.com/test_app
 api: 
   url: 
     list: /posts
-base_url: http://staging.com
+base_url: 
+  production: http://staging.com
+  development: http://development.com
+  test: http://test.com
 other: some other
 secret_key: in app
 readonly_for_test: 

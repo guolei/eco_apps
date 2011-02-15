@@ -14,6 +14,10 @@ describe "initializer" do
       EcoApps.current.url.should == "http://www.example.com/test_app"
       EcoApps.current.api.should == {"url" => {"list" => "/posts"}}
     end
+    
+    it "should be use test base_url" do
+      EcoApps.current_base_url.should == "http://test.com"
+    end
   end
 end 
 

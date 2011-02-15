@@ -3,6 +3,20 @@ module EcoApps
   mattr_accessor :current
 
   class << self
+    
+    def current_base_url
+      url = if self.base_url.is_a?(Hash)
+        self.base_url[Rails.env]
+      else
+        self.base_url
+      end
+      
+      if url.blank?
+        raise "please set #{Rails.env} env base_url in app_config.yml"
+      else
+        return url
+      end
+    end
 
     def validate_master_app_url!
       url = self.master_app_url
