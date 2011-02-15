@@ -4,11 +4,12 @@ module EcoApps
 
   class << self
     
-    def current_base_url
-      url = if self.base_url.is_a?(Hash)
-        self.base_url[Rails.env]
+    def base_url
+      url = load_from_conf(:base_url)
+      url = if url.is_a?(Hash)
+        url[Rails.env]
       else
-        self.base_url
+        url
       end
       
       if url.blank?
@@ -17,7 +18,7 @@ module EcoApps
         return url
       end
     end
-
+    
     def validate_master_app_url!
       url = self.master_app_url
       raise 'Please set master_app_url in GEM_DIR/eco_apps/lib/platform_config.yml or APP_ROOT/config/app_config.yml!' if url.blank?
@@ -30,7 +31,7 @@ module EcoApps
 
     def master_app_url
       url = load_from_conf(:master_app_url)
-      if url.is_a?(Hash)
+      url = if url.is_a?(Hash)
         url[Rails.env]
       else
         url
